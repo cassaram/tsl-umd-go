@@ -2,47 +2,47 @@ package tsl
 
 // Represents a TSL 5.0 packet stripped to useful information
 type TSLPacket struct {
-	Version  uint8
-	Flags    TSLFlags
-	Screen   uint16
-	Messages []TSLDisplayMessage
+	Version  uint8               `json:"version"`
+	Flags    TSLFlags            `json:"flags"`
+	Screen   uint16              `json:"screen"`
+	Messages []TSLDisplayMessage `json:"messages"`
 }
 
 // Struct representing flags within a TSL 5.0 packet
 type TSLFlags struct {
-	Unicode    bool
-	ScreenData bool
+	Unicode    bool `json:"unicode"`
+	ScreenData bool `json:"screen-data"`
 }
 
 // Struct representing a display message defined by TSL 5.0
 type TSLDisplayMessage struct {
-	Index   uint16
-	Control TSLControl
+	Index   uint16     `json:"index"`
+	Control TSLControl `json:"control"`
 }
 
 // Struct representing control data defined by TSL 5.0
 type TSLControl struct {
-	RightTally  TSLTallyColor
-	TextTally   TSLTallyColor
-	LeftTally   TSLTallyColor
-	Brightness  uint8
-	DisplayData TSLDisplayData
-	ControlData TSLControlData
+	RightTally  TSLTallyColor  `json:"right-tally"`
+	TextTally   TSLTallyColor  `json:"text-tally"`
+	LeftTally   TSLTallyColor  `json:"left-tally"`
+	Brightness  uint8          `json:"brightness"`
+	DisplayData TSLDisplayData `json:"display-data"`
+	ControlData TSLControlData `json:"control-data"`
 }
 
 // Constant defines for tally colors
 type TSLTallyColor uint8
 
 const (
-	OFF   TSLTallyColor = 0
-	RED   TSLTallyColor = 1
-	GREEN TSLTallyColor = 2
-	AMBER TSLTallyColor = 3
+	TALLY_OFF   TSLTallyColor = 0
+	TALLY_RED   TSLTallyColor = 1
+	TALLY_GREEN TSLTallyColor = 2
+	TALLY_AMBER TSLTallyColor = 3
 )
 
 // Struct for storing display data
 type TSLDisplayData struct {
-	Text string
+	Text string `json:"text"`
 }
 
 // Struct for storing control data

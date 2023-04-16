@@ -32,6 +32,13 @@ type TSL5 struct {
 	callback    func(TSLPacket)
 }
 
+func NewTSL5Instance(callback func(TSLPacket)) *TSL5 {
+	p := TSL5{
+		callback: callback,
+	}
+	return &p
+}
+
 func (p *TSL5) ListenUDP(address string, port string) error {
 	var err error
 	p.udpListener, err = net.Listen("udp", address+":"+port)
@@ -70,7 +77,7 @@ func (p *TSL5) handleConnection(conn net.Conn) {
 			n, err := conn.Read(buf)
 			if err == nil {
 				// Packet received, decode it
-				pkt := decodePacket(buf[:n])
+				pkt := DecodePacket(buf[:n])
 				// Call callback in new routine
 				go p.callback(pkt)
 			}
@@ -78,7 +85,7 @@ func (p *TSL5) handleConnection(conn net.Conn) {
 	}
 }
 
-func decodePacket(data []byte) TSLPacket {
+func DecodePacket(data []byte) TSLPacket {
 	var cleanData []byte
 
 	// Handle DLE and STX
@@ -109,7 +116,7 @@ func decodePacket(data []byte) TSLPacket {
 	// Export messages from encoded packet
 	for len(cleanData) > _OFST_INDX {
 		msg := TSLDisplayMessage{
-			Index: binary.BigEndian.Uint16(cleanData[_OFST_INDX : _OFST_INDX+2]),
+			Index: binary.LittleEndian.Uint16(cleanData[_OFST_INDX : _OFST_INDX+2]),
 			Control: TSLControl{
 				RightTally: TSLTallyColor(cleanData[_OFST_CTRL] >> 0 & 0x3),
 				TextTally:  TSLTallyColor(cleanData[_OFST_CTRL] >> 2 & 0x3),
@@ -117,7 +124,7 @@ func decodePacket(data []byte) TSLPacket {
 				Brightness: (cleanData[_OFST_CTRL] >> 6 & 0x3),
 			},
 		}
-		msgLength := _OFST_LENG + int(binary.LittleEndian.Uint16(cleanData[_OFST_LENG:_OFST_LENG+2])) - _OFST_INDX
+		msgLength := int(binary.LittleEndian.Uint16(cleanData[_OFST_LENG : _OFST_LENG+2]))
 
 		if cleanData[_OFST_CTRL]&0x80 != 0 {
 			// Interpret as control data
@@ -164,6 +171,7 @@ func getTextEncoded(data []byte, unicode bool) (string, error) {
 
 	} else {
 		// ASCII
+		data = bytes.Trim(data, "\u0000")
 		return string(data), nil
 	}
 }
