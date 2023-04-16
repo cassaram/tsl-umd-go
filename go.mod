@@ -1,3 +1,3 @@
-module github.com/cassaram/tsl-umd-5-go
+module github.com/cassaram/tsl-umd-go
 
 go 1.19
