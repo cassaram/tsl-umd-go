@@ -27,7 +27,7 @@ const (
 
 // Struct which implements a TSL 5.0 endpoint
 type TSL5 struct {
-	udpListener net.Listener
+	udpListener net.PacketConn
 	stop        chan bool
 	callback    func(TSLPacket)
 }
@@ -41,7 +41,7 @@ func NewTSL5Instance(callback func(TSLPacket)) *TSL5 {
 
 func (p *TSL5) ListenUDP(address string, port string) error {
 	var err error
-	p.udpListener, err = net.Listen("udp", address+":"+port)
+	p.udpListener, err = net.ListenPacket("udp", address+":"+port)
 	if err != nil {
 		return err
 	}
@@ -54,27 +54,11 @@ func (p *TSL5) handleUDP() {
 	for {
 		select {
 		case <-p.stop:
-			return
-		default:
-			conn, err := p.udpListener.Accept()
-			if err != nil {
-				// handle
-				continue
-			}
-			go p.handleConnection(conn)
-		}
-	}
-}
-
-func (p *TSL5) handleConnection(conn net.Conn) {
-	for {
-		select {
-		case <-p.stop:
-			conn.Close()
+			p.udpListener.Close()
 			return
 		default:
 			buf := make([]byte, 100)
-			n, err := conn.Read(buf)
+			n, _, err := p.udpListener.ReadFrom(buf)
 			if err == nil {
 				// Packet received, decode it
 				pkt := DecodePacket(buf[:n])
